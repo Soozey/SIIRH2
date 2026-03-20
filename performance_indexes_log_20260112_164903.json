@@ -1,0 +1,225 @@
+{
+  "timestamp": "2026-01-12T16:49:01.564797",
+  "indexes_created": [
+    {
+      "name": "idx_fast_matricule_lookup",
+      "table": "matricule_name_resolver",
+      "purpose": "Recherche exacte par matricule"
+    },
+    {
+      "name": "idx_matricule_prefix_search",
+      "table": "matricule_name_resolver",
+      "purpose": "Recherche par préfixe matricule (insensible à la casse)"
+    },
+    {
+      "name": "idx_employer_matricule_lookup",
+      "table": "matricule_name_resolver",
+      "purpose": "Recherche matricule par employeur"
+    },
+    {
+      "name": "idx_name_text_search",
+      "table": "matricule_name_resolver",
+      "purpose": "Recherche textuelle sur noms complets"
+    },
+    {
+      "name": "idx_org_assignment_matricule_active",
+      "table": "worker_organizational_assignments",
+      "purpose": "Affectations actives par matricule"
+    },
+    {
+      "name": "idx_org_assignment_unit_active",
+      "table": "worker_organizational_assignments",
+      "purpose": "Workers par unité organisationnelle"
+    },
+    {
+      "name": "idx_org_assignment_etablissement",
+      "table": "worker_organizational_assignments",
+      "purpose": "Recherche par établissement (legacy)"
+    },
+    {
+      "name": "idx_org_assignment_audit",
+      "table": "worker_organizational_assignments",
+      "purpose": "Audit trail des affectations"
+    },
+    {
+      "name": "idx_workers_resolver_join",
+      "table": "workers",
+      "purpose": "Jointure workers-resolver optimisée"
+    },
+    {
+      "name": "idx_resolver_assignment_join",
+      "table": "matricule_name_resolver",
+      "purpose": "Jointure resolver-assignments optimisée"
+    },
+    {
+      "name": "idx_audit_matricule_chronological",
+      "table": "matricule_audit_trail",
+      "purpose": "Historique chronologique par worker"
+    },
+    {
+      "name": "idx_audit_matricule_search",
+      "table": "matricule_audit_trail",
+      "purpose": "Recherche dans l'audit par matricule"
+    }
+  ],
+  "performance_tests": [
+    {
+      "test": "matricule_exact_search",
+      "duration_ms": 9.02,
+      "result_found": true
+    },
+    {
+      "test": "name_like_search",
+      "duration_ms": 1.0,
+      "results_count": 2
+    },
+    {
+      "test": "complex_join_query",
+      "duration_ms": 9.27,
+      "results_count": 8
+    },
+    {
+      "test": "matricule_prefix_search",
+      "duration_ms": 2.03,
+      "results_count": 8
+    }
+  ],
+  "errors": [],
+  "index_analysis": [
+    {
+      "name": "idx_audit_date",
+      "table": "matricule_audit_trail",
+      "sql": "CREATE INDEX idx_audit_date \n                ON matricule_audit_trail(changed_at)\n            "
+    },
+    {
+      "name": "idx_audit_matricule_chronological",
+      "table": "matricule_audit_trail",
+      "sql": "CREATE INDEX idx_audit_matricule_chronological \n                        ON matricule_audit_trail(worker_id, changed_at DESC)\n                    "
+    },
+    {
+      "name": "idx_audit_matricule_search",
+      "table": "matricule_audit_trail",
+      "sql": "CREATE INDEX idx_audit_matricule_search \n                        ON matricule_audit_trail(new_matricule, old_matricule)\n                    "
+    },
+    {
+      "name": "idx_audit_worker",
+      "table": "matricule_audit_trail",
+      "sql": "CREATE INDEX idx_audit_worker \n                ON matricule_audit_trail(worker_id)\n            "
+    },
+    {
+      "name": "idx_employer_matricule_lookup",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_employer_matricule_lookup \n                        ON matricule_name_resolver(employer_id, matricule, is_active)\n                    "
+    },
+    {
+      "name": "idx_fast_matricule_lookup",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_fast_matricule_lookup \n                        ON matricule_name_resolver(matricule, is_active)\n                    "
+    },
+    {
+      "name": "idx_matricule_prefix_search",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_matricule_prefix_search \n                        ON matricule_name_resolver(matricule COLLATE NOCASE)\n                    "
+    },
+    {
+      "name": "idx_name_text_search",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_name_text_search \n                        ON matricule_name_resolver(full_name COLLATE NOCASE)\n                    "
+    },
+    {
+      "name": "idx_resolver_assignment_join",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_resolver_assignment_join \n                        ON matricule_name_resolver(matricule, employer_id, is_active)\n                    "
+    },
+    {
+      "name": "idx_resolver_employer_active",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_resolver_employer_active \n                ON matricule_name_resolver(employer_id, is_active)\n            "
+    },
+    {
+      "name": "idx_resolver_matricule",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE UNIQUE INDEX idx_resolver_matricule \n                ON matricule_name_resolver(matricule)\n            "
+    },
+    {
+      "name": "idx_resolver_name",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_resolver_name \n                ON matricule_name_resolver(full_name, employer_id)\n            "
+    },
+    {
+      "name": "idx_resolver_search_vector",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_resolver_search_vector \n                ON matricule_name_resolver(search_vector)\n            "
+    },
+    {
+      "name": "idx_resolver_worker",
+      "table": "matricule_name_resolver",
+      "sql": "CREATE INDEX idx_resolver_worker \n                ON matricule_name_resolver(worker_id)\n            "
+    },
+    {
+      "name": "idx_org_unit_employer_level",
+      "table": "organizational_units",
+      "sql": "CREATE INDEX idx_org_unit_employer_level ON organizational_units (employer_id, level)"
+    },
+    {
+      "name": "idx_org_unit_parent",
+      "table": "organizational_units",
+      "sql": "CREATE INDEX idx_org_unit_parent ON organizational_units (parent_id)"
+    },
+    {
+      "name": "idx_org_assignment_audit",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_org_assignment_audit \n                        ON worker_organizational_assignments(created_at, updated_at)\n                    "
+    },
+    {
+      "name": "idx_org_assignment_etablissement",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_org_assignment_etablissement \n                        ON worker_organizational_assignments(etablissement, is_active)\n                        WHERE etablissement IS NOT NULL\n                    "
+    },
+    {
+      "name": "idx_org_assignment_matricule_active",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_org_assignment_matricule_active \n                        ON worker_organizational_assignments(worker_matricule, is_active, effective_date)\n                    "
+    },
+    {
+      "name": "idx_org_assignment_unit_active",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_org_assignment_unit_active \n                        ON worker_organizational_assignments(organizational_unit_id, is_active)\n                    "
+    },
+    {
+      "name": "idx_worker_org_assignment_employer",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_worker_org_assignment_employer \n                ON worker_organizational_assignments(employer_id)\n            "
+    },
+    {
+      "name": "idx_worker_org_assignment_matricule",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_worker_org_assignment_matricule \n                ON worker_organizational_assignments(worker_matricule)\n            "
+    },
+    {
+      "name": "idx_worker_org_assignment_unique",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE UNIQUE INDEX idx_worker_org_assignment_unique \n                ON worker_organizational_assignments(worker_matricule, employer_id, effective_date)\n                WHERE is_active = 1\n            "
+    },
+    {
+      "name": "idx_worker_org_assignment_unit",
+      "table": "worker_organizational_assignments",
+      "sql": "CREATE INDEX idx_worker_org_assignment_unit \n                ON worker_organizational_assignments(organizational_unit_id)\n            "
+    },
+    {
+      "name": "idx_workers_employer_matricule",
+      "table": "workers",
+      "sql": "CREATE INDEX idx_workers_employer_matricule \n                ON workers(employer_id, matricule)\n            "
+    },
+    {
+      "name": "idx_workers_matricule_unique",
+      "table": "workers",
+      "sql": "CREATE UNIQUE INDEX idx_workers_matricule_unique \n                    ON workers(matricule) \n                    WHERE matricule IS NOT NULL AND matricule != ''\n                "
+    },
+    {
+      "name": "idx_workers_resolver_join",
+      "table": "workers",
+      "sql": "CREATE INDEX idx_workers_resolver_join \n                        ON workers(matricule, employer_id)\n                        WHERE matricule IS NOT NULL\n                    "
+    }
+  ]
+}

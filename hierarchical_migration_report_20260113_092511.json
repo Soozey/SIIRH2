@@ -1,0 +1,158 @@
+{
+  "migration_date": "2026-01-13T09:25:11.883427",
+  "analysis": {
+    "total_combinations": 8,
+    "employers_affected": 1,
+    "combinations_by_employer": {
+      "1": [
+        [
+          1,
+          "Agence Nord",
+          "Commercial",
+          "Marketing",
+          null,
+          1
+        ],
+        [
+          1,
+          "Agence Nord",
+          "Commercial",
+          "Ventes",
+          null,
+          1
+        ],
+        [
+          1,
+          "Agence Sud",
+          "Technique",
+          null,
+          null,
+          1
+        ],
+        [
+          1,
+          "Agence Sud",
+          "Technique",
+          "Support",
+          null,
+          1
+        ],
+        [
+          1,
+          "Siège Social",
+          "Informatique",
+          "Développement",
+          "Équipe Beta",
+          1
+        ],
+        [
+          1,
+          "Siège Social",
+          "Informatique",
+          "Développement",
+          "Équipe Gamma",
+          1
+        ],
+        [
+          1,
+          "Siège Social",
+          "Ressources Humaines",
+          "Formation",
+          null,
+          1
+        ],
+        [
+          1,
+          "Siège Social",
+          "Ressources Humaines",
+          "Recrutement",
+          "Équipe Alpha",
+          1
+        ]
+      ]
+    },
+    "raw_combinations": [
+      [
+        1,
+        "Agence Nord",
+        "Commercial",
+        "Marketing",
+        null,
+        1
+      ],
+      [
+        1,
+        "Agence Nord",
+        "Commercial",
+        "Ventes",
+        null,
+        1
+      ],
+      [
+        1,
+        "Agence Sud",
+        "Technique",
+        null,
+        null,
+        1
+      ],
+      [
+        1,
+        "Agence Sud",
+        "Technique",
+        "Support",
+        null,
+        1
+      ],
+      [
+        1,
+        "Siège Social",
+        "Informatique",
+        "Développement",
+        "Équipe Beta",
+        1
+      ],
+      [
+        1,
+        "Siège Social",
+        "Informatique",
+        "Développement",
+        "Équipe Gamma",
+        1
+      ],
+      [
+        1,
+        "Siège Social",
+        "Ressources Humaines",
+        "Formation",
+        null,
+        1
+      ],
+      [
+        1,
+        "Siège Social",
+        "Ressources Humaines",
+        "Recrutement",
+        "Équipe Alpha",
+        1
+      ]
+    ]
+  },
+  "results": {
+    "1": {
+      "etablissements_created": 3,
+      "departements_created": 4,
+      "services_created": 6,
+      "unites_created": 3,
+      "conflicts": []
+    }
+  },
+  "summary": {
+    "total_employers_migrated": 1,
+    "total_etablissements_created": 3,
+    "total_departements_created": 4,
+    "total_services_created": 6,
+    "total_unites_created": 3,
+    "total_conflicts": 0
+  }
+}

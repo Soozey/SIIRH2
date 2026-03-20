@@ -1,0 +1,6 @@
+[submodule "siirh-frontend"]
+	path = siirh-frontend
+	url = https://github.com/Soozey/siirh-frontend_Paie.git
+[submodule "siirh-backend"]
+	path = siirh-backend
+	url = https://github.com/Soozey/siirh-backend.git
