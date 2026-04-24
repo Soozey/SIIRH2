@@ -1,0 +1,744 @@
+﻿ANALYSE TECHNIQUE EXHAUSTIVE DE SIIRH PAIE TANTELY
+1. VUE D'ENSEMBLE DU PROJET
+Nom du projet : SIRH Paie MG (SystÃ¨me d'Information des Ressources Humaines â€” Paie Madagascar)
+Architecture gÃ©nÃ©rale : Application web full-stack dÃ©couplÃ©e (SPA + API REST)
+siirh-frontend/   â†’ React 19 + TypeScript + Vite (port 5173)
+siirh-backend/    â†’ FastAPI + SQLAlchemy (port 8000)
+Base de donnÃ©es   â†’ PostgreSQL (db_siirh_app)
+Fichiers statiques â†’ /uploads (logos, documents)
+Technologies utilisÃ©es :
+Couche
+Technologies
+Frontend
+React 19, TypeScript 5.9, Vite 7, Tailwind CSS 3, MUI 7, TanStack Query 5, Axios, React Router 7, html2pdf.js, react-dnd, dayjs
+Backend
+FastAPI 0.121, SQLAlchemy 2.0, Pydantic 2.12, Alembic 1.17, uvicorn
+Base de donnÃ©es
+PostgreSQL + psycopg2
+Import/Export
+openpyxl (Excel), PyYAML
+Auth
+JWT (python-jose / security.py) â€” prÃ©sent mais non activÃ© dans les routers
+Dossiers principaux :
+siirh-backend/app/
+  â”œâ”€â”€ routers/       (26 fichiers â€” endpoints API)
+  â”œâ”€â”€ services/      (15+ fichiers â€” logique mÃ©tier)
+  â”œâ”€â”€ constants/     (4 fichiers â€” constantes mÃ©tier)
+  â”œâ”€â”€ config/        (config DB)
+  â”œâ”€â”€ core/          (PDF IRSA)
+  â”œâ”€â”€ utils/         (calculs HS/HM)
+  â”œâ”€â”€ models.py      (27 modÃ¨les SQLAlchemy â€” 1169 lignes)
+  â”œâ”€â”€ schemas.py     (schÃ©mas Pydantic)
+  â”œâ”€â”€ payroll_logic.py
+  â”œâ”€â”€ leave_logic.py
+  â””â”€â”€ security.py
+
+siirh-frontend/src/
+  â”œâ”€â”€ pages/         (12 pages)
+  â”œâ”€â”€ components/    (40+ composants)
+  â”œâ”€â”€ hooks/         (6 hooks)
+  â”œâ”€â”€ api/           (client Axios + fonctions API)
+  â””â”€â”€ config/        (config API)
+
+
+
+2. INVENTAIRE DES MODULES
+Module
+Description
+CÃ´tÃ©
+Employeurs
+CRUD employeurs, paramÃ¨tres paie, hiÃ©rarchie org.
+Front + Back + DB
+SalariÃ©s (Workers)
+CRUD salariÃ©s, import Excel, documents
+Front + Back + DB
+Paie (Payroll)
+PrÃ©visualisation bulletin, Ã©tat de paie, export Excel
+Front + Back + DB
+Heures SupplÃ©mentaires (HS)
+Calcul HS/HM, import Excel, export vers bulletin
+Front + Back + DB
+Absences
+Calcul retenues, historique, export vers bulletin
+Front + Back + DB
+Primes
+DÃ©finition primes, formules, import variables
+Front + Back + DB
+CongÃ©s & Permissions
+Suivi congÃ©s et permissions exceptionnelles
+Front + Back + DB
+Calendrier de travail
+Statut jours (travaillÃ©/off/fermÃ©) par employeur
+Front + Back + DB
+Structure organisationnelle
+HiÃ©rarchie Ã©tablissementâ†’dÃ©partementâ†’serviceâ†’unitÃ©
+Front + Back + DB
+DÃ©clarations IRSA
+GÃ©nÃ©ration PDF dÃ©claration fiscale
+Front + Back
+Reporting
+Ã‰tat de paie, export Excel multi-colonnes
+Front + Back
+Contrats & Documents
+Contrats personnalisÃ©s, attestations, certificats
+Front + Back + DB
+RÃ©gimes (TypeRegime)
+Gestion rÃ©gimes agricole/non-agricole + VHM
+Front + Back + DB
+Constantes
+Constantes mÃ©tier et paie exposÃ©es via API
+Back
+Auth (JWT)
+SÃ©curitÃ© JWT â€” prÃ©sent mais non activÃ©
+Back uniquement
+
+
+3. INVENTAIRE DÃ‰TAILLÃ‰ DES FONCTIONNALITÃ‰S
+Module Employeurs
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+CrÃ©er un employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+POST /api/employers
+Modifier un employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+PUT /api/employers/{id}
+Supprimer un employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+DELETE /api/employers/{id}
+Upload logo
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/employers/{id}/logo â€” endpoint prÃ©sent, branchÃ© dans le formulaire
+Gestion reprÃ©sentant lÃ©gal
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Modal "DÃ©tails complets" branchÃ©
+ParamÃ¨tres CNaPS/SMIE/FMFP
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Taux, plafonds, SME
+SÃ©lection type rÃ©gime (VHM)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Avec avertissement changement
+HiÃ©rarchie organisationnelle
+Partiellement implÃ©mentÃ©
+Front + Back + DB
+Bouton "GÃ©rer la HiÃ©rarchie" prÃ©sent, mais l'aperÃ§u affiche "temporairement dÃ©sactivÃ©" â€” HierarchicalOrganizationTree commentÃ© dans le code
+Listes org. JSON (Ã©tablissements, etc.)
+PrÃ©sent mais remplacÃ©
+DB
+Champs JSON encore en DB pour compatibilitÃ©, remplacÃ©s par le systÃ¨me hiÃ©rarchique
+Module SalariÃ©s
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+CrÃ©er un salariÃ©
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Formulaire complet avec 40+ champs
+Modifier un salariÃ©
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+
+Supprimer (soft) par sÃ©lection
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/workers/delete_batch
+Suppression dÃ©finitive (hard delete)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+Modal WorkerHardDeleteModal + service dÃ©diÃ©
+Recherche par matricule/nom/prÃ©nom
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+Recherche debounced 500ms, filtre SQL multi-champs
+Filtre par employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Filtrage cÃ´tÃ© front uniquement
+Import Excel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/workers-import/import + template tÃ©lÃ©chargeable
+DÃ©tection homonymes
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Logique JS cÃ´tÃ© front, badge d'alerte
+GÃ©nÃ©ration attestation de travail
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Composant EmploymentAttestation, impression PDF
+GÃ©nÃ©ration certificat de travail
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Composant WorkCertificate, impression PDF
+GÃ©nÃ©ration contrat de travail
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Composant EmploymentContract
+Calcul automatique clÃ© RIB
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Logique JS BigInt dans Workers.tsx
+Calcul prÃ©avis lÃ©gal
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Logique JS par groupe (1-5) et anciennetÃ©
+Enrichissement donnÃ©es org. depuis worker_organizational_assignments
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+RequÃªte SQL raw dans workers.py â€” dÃ©pend de la table worker_organizational_assignments
+Synchronisation rÃ©gime/VHM Ã  la sÃ©lection employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+useEffect dans Workers.tsx
+Module Paie (Payroll)
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+PrÃ©visualisation bulletin individuel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/payroll/preview
+CrÃ©ation/rÃ©cupÃ©ration PayrollRun
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+POST /api/payroll/get-or-create-run
+Impression bulletin individuel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Composant PayslipDocument + react-to-print
+Impression en masse (bulk)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+Route /payslip-bulk/{employerId}/{period} + filtres org.
+AperÃ§u Ã©tat de paie (journal)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/reporting/generate + modal tableau
+Export Ã©tat de paie Excel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/reporting/export-journal â†’ .xlsx
+Simulateur de salaire (calcul inverse)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/payroll/reverse-calculate â€” dichotomie
+Nouvelle pÃ©riode de paie
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+Modal CreatePayrollPeriodModal
+Calendrier de travail (depuis paie)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Bouton "Calendrier de Travail" â†’ WorkCalendar
+Import variables HS/HM/Absences
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+ImportHsHmDialog â†’ /api/payroll-hs-hm/import-excel
+Import variables Primes
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+ImportPrimesDialog â†’ /api/payroll-hs-hm/import-primes-excel
+RÃ©initialiser primes
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/payroll-hs-hm/reset-bulk-primes/{id}
+Gestionnaire HS/HM
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+HsHmManagerModal
+Filtres organisationnels sur journal/bulk
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+OrganizationalFilterModalOptimized
+
+Module Heures SupplÃ©mentaires
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+Saisie manuelle jours HS
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Tableau de saisie avec entrÃ©e/sortie/pause
+Calcul HS (130%, 150%, nuit 30%/50%, dim. 40%, JF 50%)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+POST /api/hs/calculate-and-save
+Ajout ligne
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+handleAddRowHS
+Ajout semaine complÃ¨te
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+handleAddWeekHS â€” gÃ©nÃ¨re 7 jours
+Insertion ligne aprÃ¨s
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+handleInsertRowAfterHS
+Suppression ligne
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+handleRemoveRowHS
+ParamÃ©trage taux de majoration
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Panel collapsible, persistÃ© en localStorage
+Import Excel HS
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+ImportHSExcelModal â†’ /api/hs/import-excel
+Calcul groupÃ© (import multi-matricules)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+handleCalculerGroupHS / handleCalculerAllGroupsHS
+Export vers bulletin (individuel)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/hs/{id}/export-to-payroll
+Export vers bulletin (tous)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+handleExportAllGroupsHS
+Historique HS avec recherche
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/hs/all
+Suppression calcul HS
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+DELETE /api/hs/{id}
+Suppression tous les calculs affichÃ©s
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+handleDeleteAllHS
+Modification valeurs calculÃ©es
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+PUT /api/hs/{id}
+Affichage nom du jour
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+getDayName()
+DÃ©tection jours fÃ©riÃ©s/fermÃ©s depuis calendrier
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+getCalendar() â†’ holidaysMap
+Gestion jours manquants Ã  l'import
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+MissingDaysMode dans hs_import.py
+Module Absences
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+Saisie absences (ABSM, ABSNR, ABSMP, ABS1, ABS2)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+5 types d'absence
+Calcul retenues
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/absences/calculate-and-save
+Historique absences
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/absences/all
+Export vers bulletin
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/absences/{id}/export-to-payroll
+Suppression calcul
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+DELETE /api/absences/{id}
+Suppression tous les calculs affichÃ©s
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+handleDeleteAllAbs
+RÃ©initialisation formulaire
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+handleReset
+PrÃ©-remplissage salaires depuis worker
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+fetchWorker() â†’ setSalaireBase/setSalaireHoraire
+Absence maladie (ABSM) marquÃ©e "informatif"
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Pas de retenue calculÃ©e pour ABSM â€” comportement intentionnel
+Module Primes
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+DÃ©finir types de primes (par employeur)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Page PrimesManagement
+Formules de primes par salariÃ©
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+WorkerPrime + WorkerPrimeLink
+Import variables primes Excel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+/api/payroll-hs-hm/import-primes-excel
+RÃ©initialiser primes importÃ©es
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+/api/payroll-hs-hm/reset-bulk-primes
+Primes dynamiques dans Ã©tat de paie
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+get_dynamic_journal_columns() dans reporting.py
+Module CongÃ©s & Permissions
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+CrÃ©er/modifier/supprimer congÃ©
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+Page LeavePermissionManagement
+CrÃ©er/modifier/supprimer permission
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+
+IntÃ©gration dans calcul paie
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+leave_logic.py â†’ get_leave_summary_for_period()
+Module Calendrier
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+Affichage calendrier mensuel
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+WorkCalendar component
+DÃ©finir statut d'un jour
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/calendar/set-status
+Utilisation dans calcul HS
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+holidaysMap dans HeuresSupplementairesPageHS
+Module Structure Organisationnelle
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+Arbre hiÃ©rarchique (Ã©tablissementâ†’dÃ©partementâ†’serviceâ†’unitÃ©)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+GET /api/hierarchical-organization/tree
+Options en cascade
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/hierarchical-organization/cascading-options
+CRUD nÅ“uds organisationnels
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back + DB
+POST/PUT/DELETE /api/hierarchical-organization/nodes
+Filtrage organisationnel (modal)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+OrganizationalFilterModalOptimized
+Affichage hiÃ©rarchie dans Employers
+Partiellement implÃ©mentÃ©
+Front
+HierarchicalOrganizationTree commentÃ© â€” affiche "temporairement dÃ©sactivÃ©"
+Table worker_organizational_assignments
+PrÃ©sent mais Ã  confirmer
+DB
+UtilisÃ©e dans workers.py via SQL raw â€” table non dÃ©finie dans models.py visible
+Module DÃ©clarations IRSA
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+SÃ©lection employeur + pÃ©riode
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+Formulaire Declarations.tsx
+Filtres organisationnels
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+OrganizationalFilterModalOptimized
+GÃ©nÃ©ration PDF IRSA
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/irsa/generate-pdf/{employer_id}
+Visualisation PDF inline
+ImplÃ©mentÃ© et opÃ©rationnel
+Front
+IRSAPDFDirectViewer component
+Fallback multi-services PDF
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+4 services PDF en cascade (with_employee_lines â†’ ultimate â†’ robust â†’ exact)
+Module Reporting
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+MÃ©tadonnÃ©es colonnes
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+GET /api/reporting/metadata
+Colonnes dynamiques par employeur
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+GET /api/reporting/journal-columns/{employer_id}
+GÃ©nÃ©ration Ã©tat de paie (aperÃ§u)
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+POST /api/reporting/generate
+Export Excel Ã©tat de paie
+ImplÃ©mentÃ© et opÃ©rationnel
+Front + Back
+GET /api/reporting/export-journal â†’ .xlsx
+Champs organisationnels dans Ã©tat de paie
+ImplÃ©mentÃ© et opÃ©rationnel
+Back
+Ã©tablissement, dÃ©partement, service, unitÃ© inclus dans colonnes
+Module Auth
+FonctionnalitÃ©
+Statut rÃ©el
+CÃ´tÃ©
+Observations
+JWT security.py
+PrÃ©sent mais non branchÃ©
+Back
+security.py existe, router auth.py prÃ©sent mais NON inclus dans main.py
+Protection des endpoints
+Non implÃ©mentÃ©
+Back
+Aucun endpoint ne requiert d'authentification
+4. ANALYSE DU FRONTEND
+Pages et Ã©crans
+/ â€” Employers (Gestion des Employeurs)
+Route : /
+Composants principaux : formulaire CRUD, liste cards employeurs, HierarchyManagerModalEnhanced, modal reprÃ©sentant
+Formulaires : crÃ©ation/Ã©dition employeur (raison sociale, adresse, NIF, STAT, CNaPS, SMIE, FMFP, SME, type Ã©tablissement, type rÃ©gime, logo, reprÃ©sentant)
+Tableaux/listes : liste des employeurs en cards
+Boutons/actions :
+"Nouvel Employeur" â†’ fonctionnel
+"Modifier" (crayon) â†’ fonctionnel
+"Supprimer" (poubelle) â†’ fonctionnel
+"GÃ©rer la HiÃ©rarchie" â†’ fonctionnel (ouvre HierarchyManagerModalEnhanced)
+"DÃ©tails complets" (reprÃ©sentant) â†’ fonctionnel
+Upload logo â†’ fonctionnel uniquement en mode Ã©dition (pas en crÃ©ation)
+AperÃ§u hiÃ©rarchie â†’ non fonctionnel (affiche "temporairement dÃ©sactivÃ©", HierarchicalOrganizationTree commentÃ©)
+DÃ©pendances API : GET/POST/PUT/DELETE /api/employers, GET /api/type_regimes
+Remarques UX : upload logo dÃ©sactivÃ© en mode crÃ©ation (nÃ©cessite un ID existant)
+/workers â€” Workers (Gestion des SalariÃ©s)
+Route : /workers
+Composants : formulaire CRUD, liste workers, WorkCertificate, EmploymentAttestation, EmploymentContract, ImportWorkersDialog, WorkerHardDeleteModal, OrganizationalDisplayFields
+Formulaires : 40+ champs (identitÃ©, contrat, salaire, banque, organisation, avantages, taux override)
+Tableaux/listes : liste workers avec filtre employeur + recherche
+Boutons/actions :
+"Importer Excel" â†’ fonctionnel
+"Supprimer (N)" sÃ©lection â†’ fonctionnel
+"Nouveau Travailleur" â†’ fonctionnel
+IcÃ´ne document (attestation/certificat/contrat) â†’ fonctionnel
+IcÃ´ne Ã©dition â†’ fonctionnel
+IcÃ´ne hard delete â†’ fonctionnel
+Filtre par employeur â†’ fonctionnel (cÃ´tÃ© front)
+Recherche matricule/nom â†’ fonctionnel (debounced, API)
+Calcul clÃ© RIB automatique â†’ fonctionnel
+Calcul prÃ©avis lÃ©gal â†’ fonctionnel (affichage)
+DÃ©pendances API : GET/POST/PUT /api/workers, GET /api/employers, GET /api/type_regimes, GET /api/employers/{id}/organizational-data/workers
+IncohÃ©rence : appel Ã  /api/employers/{id}/organizational-data/workers â€” endpoint non visible dans employers.py (Ã  vÃ©rifier)
+/payroll â€” PayrollRun (Gestion des Bulletins)
+Route : /payroll
+Composants : WorkerSearchSelect, WorkCalendar, ImportHsHmDialog, ImportPrimesDialog, HsHmManagerModal, ResetPrimesDialog, PayslipDocument, OrganizationalFilterModalOptimized, CreatePayrollPeriodModal
+Formulaires : sÃ©lection salariÃ© + pÃ©riode, simulateur netâ†’brut
+Tableaux/listes : aperÃ§u journal de paie (tableau dynamique)
+Boutons/actions :
+"PrÃ©visualiser ce bulletin" â†’ fonctionnel
+"Imprimer tous les bulletins" â†’ fonctionnel (avec filtre org.)
+"Simulateur de Salaire" â†’ fonctionnel
+"AperÃ§u de l'Ã‰tat de Paie" â†’ fonctionnel
+"Exporter l'Ã‰tat de paie" â†’ fonctionnel (.xlsx)
+"Calendrier de Travail" â†’ fonctionnel
+"Nouvelle PÃ©riode" â†’ fonctionnel
+"Import Variables Primes" â†’ fonctionnel
+"RÃ©initialiser les primes" â†’ fonctionnel
+"Import Variables HS HM Absences" â†’ fonctionnel
+"Gestionnaire HS/HM" â†’ fonctionnel
+DÃ©pendances API : GET /api/workers, GET /api/payroll/preview, POST /api/payroll/get-or-create-run, GET /api/reporting/generate, GET /api/reporting/export-journal, GET /api/payroll/reverse-calculate
+/hs â€” HeuresSupplementairesPageHS
+Route : /hs
+Composants : WorkerSearchSelect, ImportHSExcelModal
+Formulaires : saisie jours HS (date, type jour, entrÃ©e, sortie, pause, type nuit), paramÃ©trage taux
+Tableaux/listes : tableau saisie jours, historique HS, groupes import
+Boutons/actions :
+"Calculer" â†’ fonctionnel
+"Ajouter une ligne" â†’ fonctionnel
+"Ajouter une semaine" â†’ fonctionnel
+"InsÃ©rer aprÃ¨s" â†’ fonctionnel
+"Supprimer ligne" â†’ fonctionnel
+"Importer Excel" â†’ fonctionnel
+"Calculer tous" (import groupÃ©) â†’ fonctionnel
+"Exporter tous" (import groupÃ©) â†’ fonctionnel
+"Exporter vers bulletin" (individuel) â†’ fonctionnel
+"Supprimer" calcul â†’ fonctionnel
+"Supprimer tous" â†’ fonctionnel
+Panel taux de majoration â†’ fonctionnel (localStorage)
+DÃ©pendances API : POST /api/hs/calculate-and-save, GET /api/hs/all, DELETE /api/hs/{id}, PUT /api/hs/{id}, POST /api/hs/{id}/export-to-payroll, GET /api/calendar/{id}/{year}/{month}
+/absences â€” Absences
+Route : /absences
+Composants : WorkerSearchSelect
+Formulaires : saisie 5 types d'absence (jours/heures), salariÃ©, pÃ©riode, salaires
+Tableaux/listes : historique absences
+Boutons/actions :
+"Calculer et Sauvegarder" â†’ fonctionnel
+"RÃ©initialiser" â†’ fonctionnel
+"Exporter vers bulletin" â†’ fonctionnel
+"Supprimer" calcul â†’ fonctionnel
+"Supprimer tous" â†’ fonctionnel
+DÃ©pendances API : POST /api/absences/calculate-and-save, GET /api/absences/all, DELETE /api/absences/{id}, POST /api/absences/{id}/export-to-payroll
+/payslip/:workerId/:period â€” Payslip
+Route : /payslip/:workerId/:period
+Composants : PayslipDocument
+RÃ´le : affichage bulletin individuel imprimable
+DÃ©pendances API : GET /api/payroll/preview
+/payslip-bulk/:employerId/:period â€” PayslipsBulk
+Route : /payslip-bulk/:employerId/:period
+RÃ´le : impression en masse des bulletins avec filtres org.
+DÃ©pendances API : GET /api/workers, GET /api/payroll/preview (pour chaque worker)
+/employers/:employerId/primes â€” PrimesManagement
+Route : /employers/:employerId/primes
+RÃ´le : gestion des types de primes et formules par employeur
+DÃ©pendances API : GET/POST/PUT/DELETE /api/primes
+/leaves â€” LeavePermissionManagement
+Route : /leaves
+RÃ´le : suivi congÃ©s et permissions
+DÃ©pendances API : GET/POST/PUT/DELETE /api/leaves, /api/permissions
+/reporting â€” Reporting
+Route : /reporting
+RÃ´le : rapports analytiques
+DÃ©pendances API : /api/reporting/*
+/declarations â€” Declarations (IRSA)
+Route : /declarations
+Composants : IRSAPDFDirectViewer, OrganizationalFilterModalOptimized
+Formulaires : sÃ©lection employeur, date dÃ©but/fin, filtres org.
+Boutons/actions :
+SÃ©lection employeur â†’ fonctionnel
+SÃ©lection pÃ©riode â†’ fonctionnel
+"Filtres organisationnels" â†’ fonctionnel
+GÃ©nÃ©ration PDF â†’ fonctionnel (automatique dÃ¨s que les 3 paramÃ¨tres sont remplis)
+DÃ©pendances API : GET /api/employers, GET /api/irsa/generate-pdf/{employer_id}
+/constants-demo â€” ConstantsDemo
+Route : /constants-demo
+RÃ´le : page de dÃ©monstration des constantes (usage interne/debug)
+Statut : prÃ©sent mais non liÃ© Ã  la navigation principale
+Page non routÃ©e : Organization.tsx â€” fichier prÃ©sent dans pages/ mais aucune route dÃ©finie dans App.tsx. Page orpheline.
+
+5. ANALYSE DU BACKEND
+Endpoints rÃ©els par module
+/api/employers
+Endpoint
+MÃ©thode
+Statut
+Notes
+/api/employers
+GET
+OpÃ©rationnel
+Liste tous les employeurs
+/api/employers
+POST
+OpÃ©rationnel
+CrÃ©e un employeur
+/api/employers/{id}
+PUT
+OpÃ©rationnel
+Modifie un employeur
+/api/employers/{id}
+DELETE
+OpÃ©rationnel
+Supprime un employeur
+/api/employers/{id}/workers-org-data
+GET
+OpÃ©rationnel
+DonnÃ©es org. des workers
+/api/employers/{id}/logo
+POST
+OpÃ©rationnel
+Upload logo
+/api/employers/{id}/organizational-data/workers
+GET
+Ã€ confirmer
+AppelÃ© par Workers.tsx mais non visible dans employers.py lu â€” peut Ãªtre dans un autre router
+/api/workers
+Endpoint
+MÃ©thode
+Statut
+Notes
+/api/workers
+GET
+OpÃ©rationnel
+Liste + recherche + enrichissement org.
+/api/workers
+POST
+OpÃ©rationnel
+CrÃ©e un worker
+/api/workers/{id}
+GET
+OpÃ©rationnel
+RÃ©cupÃ¨re un worker
+/api/workers/{id}
+PUT
+OpÃ©rationnel
+Modifie un worker
+/api/workers/by-matricule/{matricule}
+GET
+OpÃ©rationnel
+Recherche par matricule
+/api/workers/delete_batch
+POST
+OpÃ©rationnel
+Suppression en lot
+/api/workers/{id}/hard-delete
+POST
+OpÃ©rationnel
+Suppression dÃ©finitive
+/api/workers-import/import
+POST
+OpÃ©rationnel
+Import Excel
+/api/workers-import/template
+GET
+OpÃ©rationnel
+Template Excel
+/api/payroll
+Endpoint
+MÃ©thode
+Statut
+Notes
+/api/payroll/preview
+GET
+OpÃ©rationnel
+Calcul bulletin individuel
+/api/payroll/get-or-create-run
+POST
+OpÃ©rationnel
+
+
